@@ -110,7 +110,7 @@ class LotteryModel(nn.Module):
         
         return output
     
-def predict_next_day(model, last_days_data, device):
+def predict_next_day(model, last_days_data, device, topk=10):
     model.eval()
     input_sequence = last_days_data[-num_day_steps*2:]
     # Thêm một chiều batch_size = 1 ở đầu
@@ -120,13 +120,18 @@ def predict_next_day(model, last_days_data, device):
         output = model(input_tensor)
         probabilities = torch.sigmoid(output)
         # probabilities[0]: Lấy ra batch size đầu tiên và duy nhất trong trường hợp này
-        idx_and_probs = [(idx, prob.item()) for idx, prob in enumerate(probabilities[0])]
+        top_probs, top_indices = torch.topk(probabilities[0], topk)
+
+        idx_and_probs = dict()
+        for i in range(topk):
+            idx_and_probs[top_indices[i].item()] = top_probs[i].item()
+        # idx_and_probs = [(idx, prob.item()) for idx, prob in enumerate(probabilities[0])]
         return idx_and_probs
     
-def retrain_model():
+def train_predict_lo_bac(epoch=15):
     # Khởi tạo dataset
     dataset = LotteryDataset(
-        data=read_xoso("xsmb_data_full.json", "lo", "bac"),
+        data=read_xoso("xs_data/xsmb_data.json", "lo", "bac"),
         num_day_steps=num_day_steps,
         num_prizes_per_day=num_prizes_per_day,
         vocab_size=vocab_size
@@ -180,7 +185,7 @@ def retrain_model():
     optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-4)  # Sử dụng AdamW với weight decay và giảm learning rate xuống 0.001
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=5, verbose=True)   # Giảm lr theo theo metrics của mô hình khi train
 
-    num_epochs = 15
+    num_epochs = epoch
     best_val_loss = float('inf')
     patience_counter = 0
     early_stopping_patience = 15    # Metrics không thay đổi sau số epoch này sẽ lập tức dừng việc train
@@ -283,16 +288,12 @@ def retrain_model():
     print(f"Recall: {test_recall:.4f}")
     print(f"F1 Score: {test_f1:.4f}")
 
-    probs_with_indices = predict_next_day(model, dataset.data, device)
-    print("--- DỰ ĐOÁN ---")
-    dict_num_with_score = dict()
-    for idx, prob in probs_with_indices:
-        dict_num_with_score[idx] = prob
 
-    dict_num_with_score = dict(sorted(dict_num_with_score.items(), key=lambda item: item[1], reverse=True))
-
-    for number, score in list(dict_num_with_score.items())[:10]:
-        print(f"{number}: {score:.2f}")
+    print("--- DỰ ĐOÁN LÔ---")
+    numbers_and_probs = predict_next_day(model, dataset.data, device)
+    return numbers_and_probs
 
 if __name__ == "__main__":
-    retrain_model()
+    nums_and_probs = train_predict_lo_bac()
+    for num, prob in nums_and_probs.items():
+        print(f"{num}: {prob:.2f}")

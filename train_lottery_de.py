@@ -114,15 +114,15 @@ def predict_special_prize(model, data, device, topk=10):
         probabilities = torch.softmax(output, dim=1)
         top_probs, top_indices = torch.topk(probabilities[0], topk)
 
-        predictions = []
+        idx_and_probs = dict()
         for i in range(topk):
-            predictions.append((top_indices[i].item(), top_probs[i].item()))
+            idx_and_probs[top_indices[i].item()] = top_probs[i].item()
                 
-        return predictions
+        return idx_and_probs
 
 
-def retrain_special():
-    special_data = read_xoso("xsmb_data_full.json", "de", "bac")
+def train_predict_de_bac(epoch=45):
+    special_data = read_xoso("xs_data/xsmb_data.json", "de", "bac")
     special_dataset = SpecialPrizeDataset(
         data=special_data,
         num_day_steps=num_day_steps,
@@ -176,7 +176,7 @@ def retrain_special():
     optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=1e-4)
     # scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.5, patience=10, verbose=True)
 
-    num_epochs = 45
+    num_epochs = epoch
     best_val_loss = float('inf')
 
     print("Bắt đầu training...")
@@ -258,15 +258,11 @@ def retrain_special():
     test_accuracy = test_correct / test_total
     print(f"\nTest Results:")
     print(f"Test Accuracy: {test_accuracy:.4f}")
-    idx_and_probs = predict_special_prize(model, special_dataset.data, device)
-    dict_num_with_score = dict()
-    for idx, prob in idx_and_probs:
-        dict_num_with_score[idx] = prob
 
-    dict_num_with_score = dict(sorted(dict_num_with_score.items(), key=lambda item: item[1], reverse=True))
-
-    for number, score in list(dict_num_with_score.items())[:10]:
-        print(f"{number}: {score:.2f}")
+    nums_and_probs = predict_special_prize(model, special_dataset.data, device)
+    return nums_and_probs
 
 if __name__ == "__main__":
-    retrain_special()
+    nums_and_probs = train_predict_de_bac()
+    for num, prob in nums_and_probs.items():
+        print(f"{num}: {prob:.2f}")
