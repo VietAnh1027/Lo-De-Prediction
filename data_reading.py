@@ -18,7 +18,7 @@ def read_xoso(namefile: str, kind: str, place: str):
                 day_prize.sort()
                 all_numbers.append(day_prize)
 
-        elif place == "nam":
+        elif place == "nam" or place =="trung":
             for day in data:
                 all_results = day.get("all_results", {})
                 day_prize = []
@@ -37,7 +37,7 @@ def read_xoso(namefile: str, kind: str, place: str):
             for day in data:
                 all_numbers.append(int((day.get("special_prize")).strip()[-2:]))
 
-        elif place == "nam":
+        elif place == "nam" or place == "trung":
             for day in data:
                 special_prizes = [int((prize).strip()[-2:]) for prize in day.get("special_prize") if prize.isdigit()]
                 special_prizes.sort()

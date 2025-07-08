@@ -159,7 +159,24 @@ def predict_next_day(model, last_days_data, device, max_prizes_per_day):
 def train_predict_others(data_path, kind, place, epoch=15):
     # Đọc dữ liệu
     data = read_xoso(data_path, kind, place)
-    max_prizes_per_day= 4 if kind == "de" else 68
+    max_prizes_per_day = 0
+    if place == "nam":
+        if kind == "de":
+            max_prizes_per_day= 4
+        elif kind == "lo":
+            max_prizes_per_day= 68
+        else:
+            print("Giải không hợp lệ!")
+    
+    elif place == "trung":
+        if kind == "de":
+            max_prizes_per_day= 3
+        elif kind == "lo":
+            max_prizes_per_day= 51
+        else:
+            print("Giải không hợp lệ!")
+    else:
+        print("Miền không hợp lệ!")
     
     # Khởi tạo dataset
     dataset = LotteryDataset(
@@ -307,12 +324,15 @@ def train_predict_others(data_path, kind, place, epoch=15):
     print(f"Recall: {test_recall:.4f}")
     print(f"F1 Score: {test_f1:.4f}")
 
+    print(f"--- DỰ ĐOÁN {kind} MIỀN {place} THÀNH CÔNG! ---")
     nums_and_probs = predict_next_day(model, data, device, max_prizes_per_day)
     return nums_and_probs
 
 if __name__ == "__main__":
-    epoch = 15
-    nums_and_probs = train_predict_others("xs_data/xsmn_data.json","de","nam",epoch)
+    epoch = 45
+    kind = "de"
+    place = "nam"
+    nums_and_probs = train_predict_others("xs_data/xsmt_data.json",kind=kind,place=place,epoch=epoch)
     print(f"--- KẾT QUẢ DỰ ĐOÁN VỚI {epoch} EPOCHS ---")
     for num, prob in nums_and_probs.items():
         print(f"{num}: {prob:.2f}")

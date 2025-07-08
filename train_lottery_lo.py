@@ -253,12 +253,12 @@ def train_predict_lo_bac(epoch=15):
         #     print(f"Early stopping triggered after {epoch+1} epochs")
         #     break
 
-    torch.save(model.state_dict(), f'model/lottery_lstm_model_{num_epochs}.pth')
+    torch.save(model.state_dict(), f'model/model_lo_bac_{num_epochs}.pth')
 
     print("Training completed!")
 
     # Test phase
-    model.load_state_dict(torch.load(f'model/lottery_lstm_model_{num_epochs}.pth'))
+    model.load_state_dict(torch.load(f'model/model_lo_bac_{num_epochs}.pth'))
 
     model.eval()
     test_predictions = []
@@ -289,11 +289,12 @@ def train_predict_lo_bac(epoch=15):
     print(f"F1 Score: {test_f1:.4f}")
 
 
-    print("--- DỰ ĐOÁN LÔ---")
+    print("--- DỰ ĐOÁN LÔ MIỀN BẮC THÀNH CÔNG! ---")
     numbers_and_probs = predict_next_day(model, dataset.data, device)
     return numbers_and_probs
 
 if __name__ == "__main__":
     nums_and_probs = train_predict_lo_bac()
+    print("--- DỰ ĐOÁN LÔ MIỀN BẮC ---")
     for num, prob in nums_and_probs.items():
         print(f"{num}: {prob:.2f}")

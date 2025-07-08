@@ -231,10 +231,10 @@ def train_predict_de_bac(epoch=45):
         print(f"  Train Loss: {avg_train_loss:.4f}, Val Loss: {avg_val_loss:.4f}")
         print(f"  Val Accuracy: {val_accuracy:.4f}")
 
-    torch.save(model.state_dict(), f'model/special_lottery_model_{num_epochs}.pth')
+    torch.save(model.state_dict(), f'model/model_de_bac_{num_epochs}.pth')
     print("Training completed!")
 
-    model.load_state_dict(torch.load(f'model/special_lottery_model_{num_epochs}.pth'))
+    model.load_state_dict(torch.load(f'model/model_de_bac_{num_epochs}.pth'))
 
     # Giai đoạn test
     model.eval()
@@ -259,10 +259,12 @@ def train_predict_de_bac(epoch=45):
     print(f"\nTest Results:")
     print(f"Test Accuracy: {test_accuracy:.4f}")
 
+    print("--- DỰ ĐOÁN ĐỀ MIỀN BẮC THÀNH CÔNG! ---")
     nums_and_probs = predict_special_prize(model, special_dataset.data, device)
     return nums_and_probs
 
 if __name__ == "__main__":
     nums_and_probs = train_predict_de_bac()
+    print("--- DỰ ĐOÁN ĐỀ MIỀN BẮC ---")
     for num, prob in nums_and_probs.items():
         print(f"{num}: {prob:.2f}")
